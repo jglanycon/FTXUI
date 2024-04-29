@@ -14,6 +14,16 @@ namespace ftxui {
 class ScreenInteractive;
 class ComponentBase;
 
+enum class TerminalID
+{
+  UNKNOWN,
+  XTERM,
+  KONSOLE,
+  URXVT,
+  VTE,
+  LINUXVC
+};
+
 /// @brief Represent an event. It can be key press event, a terminal resize, or
 /// more ...
 ///
@@ -35,6 +45,7 @@ struct Event {
   static Event Mouse(std::string, Mouse mouse);
   static Event CursorPosition(std::string, int x, int y);  // Internal
   static Event CursorShape(std::string, int shape);        // Internal
+  static Event TerminalID(std::string input, enum TerminalID terminal_id); // Internal
 
   // --- Arrow ---
   static const Event ArrowLeft;
@@ -117,6 +128,9 @@ struct Event {
   bool is_cursor_shape() const { return type_ == Type::CursorShape; }
   int cursor_shape() const { return data_.cursor_shape; }
 
+  bool is_terminal_id() const { return type_ == Type::TerminalID; }
+  enum TerminalID terminal_id() const { return data_.terminal_id; }
+
   // Debug
   std::string DebugString() const;
 
@@ -132,6 +146,7 @@ struct Event {
     Mouse,
     CursorPosition,
     CursorShape,
+    TerminalID
   };
   Type type_ = Type::Unknown;
 
@@ -144,6 +159,7 @@ struct Event {
     struct Mouse mouse;
     struct Cursor cursor;
     int cursor_shape;
+	enum TerminalID terminal_id;
   } data_ = {};
 
   std::string input_;

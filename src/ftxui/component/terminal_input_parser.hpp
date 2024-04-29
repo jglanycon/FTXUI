@@ -35,6 +35,7 @@ class TerminalInputParser {
     CURSOR_POSITION,
     CURSOR_SHAPE,
     SPECIAL,
+	TERMINAL_ID
   };
 
   struct CursorPosition {
@@ -48,6 +49,7 @@ class TerminalInputParser {
       Mouse mouse;
       CursorPosition cursor;
       int cursor_shape;
+	  TerminalID terminal_id;
     };
 
     Output(Type t) : type(t) {}
@@ -62,6 +64,7 @@ class TerminalInputParser {
   Output ParseOSC();
   Output ParseMouse(bool altered, bool pressed, std::vector<int> arguments);
   Output ParseCursorPosition(std::vector<int> arguments);
+  Output ParseTerminalID(std::vector<int> arguments);
 
   Sender<Task> out_;
   int position_ = -1;

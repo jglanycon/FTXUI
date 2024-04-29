@@ -10,12 +10,14 @@
 #include <memory>                        // for shared_ptr
 #include <string>                        // for string
 #include <thread>                        // for thread
+#include <condition_variable>
 #include <variant>                       // for variant
 
 #include "ftxui/component/animation.hpp"       // for TimePoint
 #include "ftxui/component/captured_mouse.hpp"  // for CapturedMouse
 #include "ftxui/component/event.hpp"           // for Event
 #include "ftxui/component/task.hpp"            // for Task, Closure
+#include "ftxui/component/linux_io.hpp"
 #include "ftxui/screen/screen.hpp"             // for Screen
 
 namespace ftxui {
@@ -24,15 +26,20 @@ class Loop;
 struct Event;
 
 using Component = std::shared_ptr<ComponentBase>;
+using IO = std::shared_ptr<BaseIO>;
 class ScreenInteractivePrivate;
 
 class ScreenInteractive : public Screen {
  public:
   // Constructors:
   static ScreenInteractive FixedSize(int dimx, int dimy);
-  static ScreenInteractive Fullscreen();
+  static ScreenInteractive Fullscreen(
+    IO const& io_handler = std::make_shared<LinuxIO>());
+
   static ScreenInteractive FullscreenPrimaryScreen();
-  static ScreenInteractive FullscreenAlternateScreen();
+  static ScreenInteractive FullscreenAlternateScreen(
+    IO const& io_handler = std::make_shared<LinuxIO>());
+
   static ScreenInteractive FitComponent();
   static ScreenInteractive TerminalOutput();
 
@@ -68,6 +75,8 @@ class ScreenInteractive : public Screen {
   void ForceHandleCtrlC(bool force);
   void ForceHandleCtrlZ(bool force);
 
+  TerminalID terminal_id() const;
+
  private:
   void ExitNow();
 
@@ -87,6 +96,8 @@ class ScreenInteractive : public Screen {
 
   void Signal(int signal);
 
+  void Flush();
+
   ScreenInteractive* suspended_screen_ = nullptr;
   enum class Dimension {
     FitComponent,
@@ -96,10 +107,12 @@ class ScreenInteractive : public Screen {
   };
   Dimension dimension_ = Dimension::Fixed;
   bool use_alternative_screen_ = false;
-  ScreenInteractive(int dimx,
-                    int dimy,
-                    Dimension dimension,
-                    bool use_alternative_screen);
+  ScreenInteractive(
+    IO const& io_handler,
+    int dimx,
+    int dimy,
+    Dimension dimension,
+    bool use_alternative_screen);
 
   bool track_mouse_ = true;
 
@@ -109,7 +122,7 @@ class ScreenInteractive : public Screen {
   std::string set_cursor_position;
   std::string reset_cursor_position;
 
-  std::atomic<bool> quit_ = false;
+  std::condition_variable animation_quit_;
   std::thread event_listener_;
   std::thread animation_listener_;
   bool animation_requested_ = false;
@@ -128,6 +141,10 @@ class ScreenInteractive : public Screen {
 
   // The style of the cursor to restore on exit.
   int cursor_reset_shape_ = 1;
+
+  IO io_handler_;
+
+  TerminalID m_terminal_id;
 
   friend class Loop;
 
