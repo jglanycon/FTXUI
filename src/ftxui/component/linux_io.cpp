@@ -109,8 +109,12 @@ void LinuxIO::uninstall()
 void LinuxIO::event_listener(
 	Sender<Task> out)
 {
-	auto parser = TerminalInputParser(
-		std::move(out));
+	auto parser =
+		TerminalInputParser([&out] (
+			Event event)
+		{
+			out->Send(std::move(event));
+		});
 
 	struct epoll_event events[2];
 
