@@ -9,7 +9,7 @@ include(CMakePackageConfigHelpers)
 # Install the library and its public headers into the standard subdirectories
 # ------------------------------------------------------------------------------
 install(
-  TARGETS screen dom component
+  TARGETS utilities screen dom component
   EXPORT ftxui-targets
   )
 

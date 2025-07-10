@@ -17,6 +17,8 @@
 #include "ftxui/component/task.hpp"            // for Task, Closure
 #include "ftxui/dom/selection.hpp"             // for SelectionOption
 #include "ftxui/screen/screen.hpp"             // for Screen
+#include "ftxui/component/base_io.hpp"
+#include "ftxui/component/linux_io.hpp"
 
 namespace ftxui {
 class ComponentBase;
@@ -24,21 +26,38 @@ class Loop;
 struct Event;
 
 using Component = std::shared_ptr<ComponentBase>;
+using IO = std::shared_ptr<BaseIO>;
+
 class ScreenInteractivePrivate;
 
 /// @brief ScreenInteractive is a `Screen` that can handle events, run a main
 /// loop, and manage components.
 ///
 /// @ingroup component
-class ScreenInteractive : public Screen {
- public:
-  // Constructors:
-  static ScreenInteractive FixedSize(int dimx, int dimy);
-  static ScreenInteractive Fullscreen();
-  static ScreenInteractive FullscreenPrimaryScreen();
-  static ScreenInteractive FullscreenAlternateScreen();
-  static ScreenInteractive FitComponent();
-  static ScreenInteractive TerminalOutput();
+class ScreenInteractive
+:	public Screen
+{
+public:
+	// Constructors:
+	static ScreenInteractive FixedSize(
+		int dimx,
+		int dimy,
+		IO const& io_handler = std::make_shared<LinuxIO>());
+
+	static ScreenInteractive Fullscreen(
+		IO const& io_handler = std::make_shared<LinuxIO>());
+
+	static ScreenInteractive FullscreenPrimaryScreen(
+		IO const& io_handler = std::make_shared<LinuxIO>());
+
+	static ScreenInteractive FullscreenAlternateScreen(
+		IO const& io_handler = std::make_shared<LinuxIO>());
+
+	static ScreenInteractive FitComponent(
+		IO const& io_handler = std::make_shared<LinuxIO>());
+
+	static ScreenInteractive TerminalOutput(
+		IO const& io_handler = std::make_shared<LinuxIO>());
 
   // Options. Must be called before Loop().
   void TrackMouse(bool enable = true);
@@ -104,14 +123,17 @@ class ScreenInteractive : public Screen {
     Fullscreen,
     TerminalOutput,
   };
-  ScreenInteractive(Dimension dimension,
-                    int dimx,
-                    int dimy,
-                    bool use_alternative_screen);
+  ScreenInteractive(
+	  IO const& io_handler,
+	  Dimension dimension,
+      int dimx,
+      int dimy,
+      bool use_alternative_screen);
+
   const Dimension dimension_;
   const bool use_alternative_screen_;
 
-  bool track_mouse_ = true;
+  bool track_mouse_ = false;
 
   Sender<Task> task_sender_;
   Receiver<Task> task_receiver_;
@@ -155,6 +177,8 @@ class ScreenInteractive : public Screen {
   SelectionData selection_data_previous_;
   std::unique_ptr<Selection> selection_;
   std::function<void()> selection_on_change_;
+
+  IO io_handler_;
 
   friend class Loop;
 

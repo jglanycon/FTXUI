@@ -46,6 +46,7 @@ target_sources(ftxui-modules
 
 target_link_libraries(ftxui-modules
   PUBLIC
+  ftxui::utilities
   ftxui::screen
   ftxui::dom
   ftxui::component

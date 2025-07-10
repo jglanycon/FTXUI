@@ -37,6 +37,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(cmake/ftxui_message.cmake)
 
+add_library(utilities
+  include/ftxui/util/autoreset.hpp
+  include/ftxui/util/exceptions.hpp
+  include/ftxui/util/ref.hpp
+  src/ftxui/util/exceptions.cpp
+)
+
 add_library(screen
   include/ftxui/screen/box.hpp
   include/ftxui/screen/color.hpp
@@ -112,17 +119,20 @@ add_library(dom
 
 add_library(component
   include/ftxui/component/animation.hpp
+  include/ftxui/component/base_io.hpp
   include/ftxui/component/captured_mouse.hpp
   include/ftxui/component/component.hpp
   include/ftxui/component/component_base.hpp
   include/ftxui/component/component_options.hpp
   include/ftxui/component/event.hpp
+  include/ftxui/component/linux_io.hpp
   include/ftxui/component/loop.hpp
   include/ftxui/component/mouse.hpp
   include/ftxui/component/receiver.hpp
   include/ftxui/component/screen_interactive.hpp
   include/ftxui/component/task.hpp
   src/ftxui/component/animation.cpp
+  src/ftxui/component/base_io.cpp
   src/ftxui/component/button.cpp
   src/ftxui/component/catch_event.cpp
   src/ftxui/component/checkbox.cpp
@@ -134,6 +144,7 @@ add_library(component
   src/ftxui/component/event.cpp
   src/ftxui/component/hoverable.cpp
   src/ftxui/component/input.cpp
+  src/ftxui/component/linux_io.cpp
   src/ftxui/component/loop.cpp
   src/ftxui/component/maybe.cpp
   src/ftxui/component/menu.cpp
@@ -150,12 +161,25 @@ add_library(component
   src/ftxui/component/window.cpp
 )
 
+if (WIN32)
+	add_library(component
+	include/ftxui/component/windows_io.hpp
+		src/ftxui/component/windows_io.cpp
+	)
+elseif (EMSCRIPTEN)
+	add_library(component
+		include/ftxui/component/wasm_io.hpp
+		src/ftxui/component/wasm_io.cpp
+	)
+endif ()
+
 target_link_libraries(dom
   PUBLIC screen
 )
 
 target_link_libraries(component
   PUBLIC dom
+  PUBLIC utilities
 )
 
 if (NOT EMSCRIPTEN)
@@ -166,11 +190,13 @@ if (NOT EMSCRIPTEN)
 endif()
 
 include(cmake/ftxui_set_options.cmake)
+ftxui_set_options(utilities)
 ftxui_set_options(screen)
 ftxui_set_options(dom)
 ftxui_set_options(component)
 
 include(cmake/ftxui_coverage.cmake)
+ftxui_check_coverage(utilities)
 ftxui_check_coverage(screen)
 ftxui_check_coverage(dom)
 ftxui_check_coverage(component)

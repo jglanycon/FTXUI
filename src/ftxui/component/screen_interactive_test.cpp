@@ -188,6 +188,8 @@ TEST(ScreenInteractive, FixedSizeInitialFrame) {
     auto capture = StdCapture(&output);
 
     auto screen = ScreenInteractive::FixedSize(2, 2);
+	screen.TrackMouse(true);
+
     auto component = Renderer([&] {
       return text("AB");
     });
@@ -239,7 +241,7 @@ TEST(ScreenInteractive, FixedSizeInitialFrame) {
 
       // Skip one line to avoid the prompt to be printed over the last drawing.
       "\r\n"sv;
-  ASSERT_EQ(expected, output);
+   ASSERT_EQ(expected, output);
 #endif
 
 }
